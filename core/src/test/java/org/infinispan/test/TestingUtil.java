@@ -7,7 +7,6 @@ import org.infinispan.commands.CommandsFactory;
 import org.infinispan.commands.VisitableCommand;
 import org.infinispan.commons.marshall.AbstractDelegatingMarshaller;
 import org.infinispan.commons.marshall.StreamingMarshaller;
-import org.infinispan.commons.util.InfinispanCollections;
 import org.infinispan.container.DataContainer;
 import org.infinispan.container.entries.CacheEntry;
 import org.infinispan.container.entries.InternalCacheEntry;
@@ -49,7 +48,6 @@ import org.infinispan.security.impl.SecureCacheImpl;
 import org.infinispan.statetransfer.StateTransferManager;
 import org.infinispan.topology.CacheTopology;
 import org.infinispan.transaction.impl.TransactionTable;
-import org.infinispan.util.CyclicDependencyException;
 import org.infinispan.util.DependencyGraph;
 import org.infinispan.util.concurrent.TimeoutException;
 import org.infinispan.util.concurrent.WithinThreadExecutor;
@@ -104,7 +102,7 @@ public class TestingUtil {
          "      <stack-file name=\"tcp\" path=\"jgroups-tcp.xml\"/>\n" +
          "   </jgroups>";
 
-   public static enum InfinispanStartTag {
+   public enum InfinispanStartTag {
       START_40(4, 0),
       START_41(4, 1),
       START_42(4, 2),
@@ -1475,7 +1473,7 @@ public class TestingUtil {
       for (String principal : principals) {
          set.add(new TestingUtil.TestPrincipal(principal));
       }
-      return new Subject(true, set, InfinispanCollections.emptySet(), InfinispanCollections.emptySet());
+      return new Subject(true, set, Collections.emptySet(), Collections.emptySet());
    }
 
 	public static String loadFileAsString(InputStream is) throws IOException {

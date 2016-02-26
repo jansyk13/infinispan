@@ -21,7 +21,6 @@ import org.infinispan.commons.marshall.MarshallableFunctionExternalizers;
 import org.infinispan.commons.marshall.StreamingMarshaller;
 import org.infinispan.commons.util.ImmutableListCopy;
 import org.infinispan.commons.util.Immutables;
-import org.infinispan.commons.util.InfinispanCollections;
 import org.infinispan.configuration.global.GlobalConfiguration;
 import org.infinispan.container.entries.ImmortalCacheEntry;
 import org.infinispan.container.entries.ImmortalCacheValue;
@@ -43,6 +42,7 @@ import org.infinispan.container.versioning.NumericVersion;
 import org.infinispan.container.versioning.SimpleClusteredVersion;
 import org.infinispan.context.Flag;
 import org.infinispan.distexec.mapreduce.MapReduceManagerImpl;
+import org.infinispan.distribution.ch.impl.AffinityPartitioner;
 import org.infinispan.distribution.ch.impl.DefaultConsistentHash;
 import org.infinispan.distribution.ch.impl.DefaultConsistentHashFactory;
 import org.infinispan.distribution.ch.impl.HashFunctionPartitioner;
@@ -259,6 +259,10 @@ public class ExternalizerTable implements ObjectTable {
       addInternalExternalizer(new ArrayExternalizers.ListArray());
       addInternalExternalizer(new SingletonListExternalizer());
 
+      addInternalExternalizer(new IntSummaryStatisticsExternalizer());
+      addInternalExternalizer(new LongSummaryStatisticsExternalizer());
+      addInternalExternalizer(new DoubleSummaryStatisticsExternalizer());
+
       addInternalExternalizer(new GlobalTransaction.Externalizer());
       addInternalExternalizer(new RecoveryAwareGlobalTransaction.Externalizer());
       addInternalExternalizer(new DldGlobalTransaction.Externalizer());
@@ -313,6 +317,7 @@ public class ExternalizerTable implements ObjectTable {
       addInternalExternalizer(new MurmurHash2.Externalizer());
       addInternalExternalizer(new MurmurHash3.Externalizer());
       addInternalExternalizer(new HashFunctionPartitioner.Externalizer());
+      addInternalExternalizer(new AffinityPartitioner.Externalizer());
 
       addInternalExternalizer(new DefaultConsistentHash.Externalizer());
       addInternalExternalizer(new ReplicatedConsistentHash.Externalizer());
@@ -330,10 +335,6 @@ public class ExternalizerTable implements ObjectTable {
       addInternalExternalizer(new Flag.Externalizer());
       addInternalExternalizer(new ValueMatcher.Externalizer());
       addInternalExternalizer(new AvailabilityMode.Externalizer());
-
-      addInternalExternalizer(new InfinispanCollections.EmptySet.EmptySetExternalizer());
-      addInternalExternalizer(new InfinispanCollections.EmptyMap.EmptyMapExternalizer());
-      addInternalExternalizer(new InfinispanCollections.EmptyList.EmptyListExternalizer());
 
       addInternalExternalizer(new EmbeddedMetadata.Externalizer());
 

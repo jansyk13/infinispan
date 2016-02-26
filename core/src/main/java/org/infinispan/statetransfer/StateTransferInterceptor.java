@@ -25,7 +25,6 @@ import org.infinispan.commands.write.RemoveCommand;
 import org.infinispan.commands.write.ReplaceCommand;
 import org.infinispan.commands.write.WriteCommand;
 import org.infinispan.commons.CacheException;
-import org.infinispan.commons.util.InfinispanCollections;
 import org.infinispan.context.Flag;
 import org.infinispan.context.InvocationContext;
 import org.infinispan.context.impl.TxInvocationContext;
@@ -40,6 +39,7 @@ import org.infinispan.topology.CacheTopology;
 import org.infinispan.util.logging.Log;
 import org.infinispan.util.logging.LogFactory;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -58,8 +58,9 @@ import java.util.function.Consumer;
  *
  * @author anistor@redhat.com
  * @author Dan Berindei
- * @since 5.2
+ * @deprecated Since 8.2, no longer public API.
  */
+@Deprecated
 public class StateTransferInterceptor extends BaseStateTransferInterceptor {
 
    private static final Log log = LogFactory.getLog(StateTransferInterceptor.class);
@@ -408,7 +409,7 @@ public class StateTransferInterceptor extends BaseStateTransferInterceptor {
          // impossible to reach this
       }
       if (affectedKeys == null) {
-         affectedKeys = InfinispanCollections.emptySet();
+         affectedKeys = Collections.emptySet();
       }
       return affectedKeys;
    }

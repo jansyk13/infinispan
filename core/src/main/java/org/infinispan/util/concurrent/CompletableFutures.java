@@ -1,9 +1,9 @@
 package org.infinispan.util.concurrent;
 
-import org.infinispan.commons.util.InfinispanCollections;
 import org.infinispan.commons.util.concurrent.NotifyingNotifiableFuture;
 import static java.util.Objects.requireNonNull;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -22,7 +22,7 @@ import java.util.Map;
  */
 public class CompletableFutures {
 
-   private static final CompletableFuture completedEmptyMapFuture = CompletableFuture.completedFuture(InfinispanCollections.emptyMap());
+   private static final CompletableFuture completedEmptyMapFuture = CompletableFuture.completedFuture(Collections.emptyMap());
    public static final long BIG_DELAY_NANOS = TimeUnit.DAYS.toNanos(1);
 
    public static <K,V> CompletableFuture<Map<K, V>> returnEmptyMap() {
@@ -55,6 +55,12 @@ public class CompletableFutures {
    public static <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> futures) {
       CompletableFuture<Void> all = CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
       return all.thenApply(v -> futures.stream().map(future -> future.join()).collect(Collectors.<T> toList()));
+   }
+
+   public static <T> CompletableFuture<T> completedExceptionFuture(Throwable ex) {
+      CompletableFuture<T> future = new CompletableFuture<>();
+      future.completeExceptionally(ex);
+      return future;
    }
 
    /**

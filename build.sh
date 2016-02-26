@@ -8,7 +8,7 @@ GREP="grep"
 ROOT="/"
 MVN="mvn"
 
-MAVEN_OPTS="$MAVEN_OPTS -Xmx768M"
+MAVEN_OPTS="$MAVEN_OPTS -Xmx1G"
 export MAVEN_OPTS
 
 #  Use the maximum available, or set MAX_FD != -1 to use that
@@ -133,6 +133,9 @@ main() {
     #  Execute in debug mode, or simply execute.
     if [ "x$MVN_DEBUG" != "x" ]; then
         /bin/sh -x $MVN $MVN_ARGS $MVN_GOAL $ADDIT_PARAMS
+    elif [ "x$MVN_TEST_DEBUG" != "x" ]; then
+	    MVN_ARGS="${MVN_ARGS} -Dmaven.failsafe.debug"
+	    $MVN $MVN_ARGS $MVN_GOAL $ADDIT_PARAMS
     else
         $MVN $MVN_ARGS $MVN_GOAL $ADDIT_PARAMS
     fi

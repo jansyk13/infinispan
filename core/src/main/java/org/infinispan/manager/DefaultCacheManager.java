@@ -10,7 +10,6 @@ import org.infinispan.commons.api.Lifecycle;
 import org.infinispan.commons.util.CollectionFactory;
 import org.infinispan.commons.util.FileLookupFactory;
 import org.infinispan.commons.util.Immutables;
-import org.infinispan.commons.util.InfinispanCollections;
 import org.infinispan.configuration.ConfigurationManager;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
@@ -22,6 +21,7 @@ import org.infinispan.configuration.parsing.ParserRegistry;
 import org.infinispan.factories.ComponentRegistry;
 import org.infinispan.factories.GlobalComponentRegistry;
 import org.infinispan.factories.InternalCacheFactory;
+import org.infinispan.factories.KnownComponentNames;
 import org.infinispan.factories.annotations.SurvivesRestarts;
 import org.infinispan.factories.scopes.Scope;
 import org.infinispan.factories.scopes.Scopes;
@@ -34,12 +34,14 @@ import org.infinispan.jmx.annotations.ManagedAttribute;
 import org.infinispan.jmx.annotations.ManagedOperation;
 import org.infinispan.jmx.annotations.Parameter;
 import org.infinispan.lifecycle.ComponentStatus;
+import org.infinispan.manager.impl.ClusterExecutorImpl;
 import org.infinispan.notifications.cachemanagerlistener.CacheManagerNotifier;
 import org.infinispan.registry.InternalCacheRegistry;
 import org.infinispan.remoting.inboundhandler.DeliverOrder;
 import org.infinispan.remoting.rpc.ResponseMode;
 import org.infinispan.remoting.transport.Address;
 import org.infinispan.remoting.transport.Transport;
+import org.infinispan.remoting.transport.jgroups.JGroupsTransport;
 import org.infinispan.security.AuditContext;
 import org.infinispan.security.AuthorizationPermission;
 import org.infinispan.security.impl.AuthorizationHelper;
@@ -55,6 +57,7 @@ import org.infinispan.util.logging.LogFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -64,6 +67,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -607,8 +612,6 @@ public class DefaultCacheManager implements EmbeddedCacheManager {
             }
          }
 
-         globalComponentRegistry.start();
-
          log.tracef("About to wire and start cache %s", cacheName);
          Cache<K, V> cache = new InternalCacheFactory<K, V>().createCache(c, globalComponentRegistry, cacheName);
 
@@ -642,6 +645,7 @@ public class DefaultCacheManager implements EmbeddedCacheManager {
       if (globalConfiguration.security().authorization().enabled()) {
          globalConfiguration.security().authorization().principalRoleMapper().setContext(new PrincipalRoleMapperContextImpl(this));
       }
+      globalComponentRegistry.start();
       log.debugf("Started cache manager %s on %s", clusterName, nodeName);
    }
 
@@ -760,7 +764,7 @@ public class DefaultCacheManager implements EmbeddedCacheManager {
       InternalCacheRegistry internalCacheRegistry = globalComponentRegistry.getComponent(InternalCacheRegistry.class);
       internalCacheRegistry.filterPrivateCaches(names);
       if (names.isEmpty())
-         return InfinispanCollections.emptySet();
+         return Collections.emptySet();
       else
          return Immutables.immutableSetWrap(names);
    }
@@ -935,5 +939,20 @@ public class DefaultCacheManager implements EmbeddedCacheManager {
    @Override
    public CacheContainerStats getStats() {
       return stats;
+   }
+
+   @Override
+   public ClusterExecutor executor() {
+      if (globalComponentRegistry.getStatus() != ComponentStatus.RUNNING) {
+         throw new IllegalStateException("CacheManager must be started before retrieving a ClusterExecutor!");
+      }
+      JGroupsTransport transport = (JGroupsTransport) globalComponentRegistry.getComponent(Transport.class);
+      if (transport != null) {
+         long time = getCacheManagerConfiguration().transport().distributedSyncTimeout();
+         return new ClusterExecutorImpl(null, this, transport, time, TimeUnit.MILLISECONDS,
+                 globalComponentRegistry.getComponent(ExecutorService.class, KnownComponentNames.REMOTE_COMMAND_EXECUTOR));
+      } else {
+         return new ClusterExecutorImpl(null, this, null, -1, TimeUnit.MILLISECONDS, ForkJoinPool.commonPool());
+      }
    }
 }

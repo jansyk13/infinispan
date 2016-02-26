@@ -4,6 +4,7 @@ import static org.infinispan.factories.KnownComponentNames.PERSISTENCE_EXECUTOR;
 import static org.infinispan.persistence.PersistenceUtil.convert;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.concurrent.ExecutorService;
@@ -37,7 +38,6 @@ import org.infinispan.commons.equivalence.EquivalentHashSet;
 import org.infinispan.commons.util.CloseableIterator;
 import org.infinispan.commons.util.CloseableSpliterator;
 import org.infinispan.commons.util.Closeables;
-import org.infinispan.commons.util.InfinispanCollections;
 import org.infinispan.container.DataContainer;
 import org.infinispan.container.EntryFactory;
 import org.infinispan.container.InternalEntryFactory;
@@ -76,6 +76,10 @@ import org.infinispan.util.TimeService;
 import org.infinispan.util.logging.Log;
 import org.infinispan.util.logging.LogFactory;
 
+/**
+ * @deprecated Since 8.2, no longer public API.
+ */
+@Deprecated
 @MBean(objectName = "CacheLoader", description = "Component that handles loading entries from a CacheStore into memory.")
 public class CacheLoaderInterceptor<K, V> extends JmxStatsCommandInterceptor {
    private final AtomicLong cacheLoads = new AtomicLong(0);
@@ -494,7 +498,7 @@ public class CacheLoaderInterceptor<K, V> extends JmxStatsCommandInterceptor {
       if (enabled && cacheConfiguration.persistence().usingStores()) {
          return persistenceManager.getStoresAsString();
       } else {
-         return InfinispanCollections.emptySet();
+         return Collections.emptySet();
       }
    }
 

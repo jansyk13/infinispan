@@ -5,7 +5,6 @@ import org.infinispan.commands.CommandsFactory;
 import org.infinispan.commons.equivalence.AnyEquivalence;
 import org.infinispan.commons.hash.MurmurHash3;
 import org.infinispan.commons.util.CollectionFactory;
-import org.infinispan.commons.util.InfinispanCollections;
 import org.infinispan.configuration.cache.CacheMode;
 import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
@@ -175,7 +174,7 @@ public class StateConsumerTest extends AbstractInfinispanTest {
                   Map<Address, Response> results = new HashMap<Address, Response>(1);
                   if (cmd.getType().equals(StateRequestCommand.Type.GET_TRANSACTIONS)) {
                      results.put(recipient, SuccessfulResponse.create(new ArrayList<TransactionInfo>()));
-                     Set<Integer> segments = (Set<Integer>) cmd.getParameters()[3];
+                     Set<Integer> segments = cmd.getSegments();
                      requestedSegments.put(recipient, segments);
                      flatRequestedSegments.addAll(segments);
                   } else if (cmd.getType().equals(StateRequestCommand.Type.START_STATE_TRANSFER)
@@ -254,7 +253,7 @@ public class StateConsumerTest extends AbstractInfinispanTest {
       // apply state
       ArrayList<StateChunk> stateChunks = new ArrayList<StateChunk>();
       for (Integer segment : newSegments) {
-         stateChunks.add(new StateChunk(segment, InfinispanCollections.<InternalCacheEntry>emptyList(), true));
+         stateChunks.add(new StateChunk(segment, Collections.<InternalCacheEntry>emptyList(), true));
       }
       stateConsumer.applyState(addresses[1], 2, stateChunks);
 

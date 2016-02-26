@@ -2,11 +2,11 @@ package org.infinispan.server.hotrod.iteration
 
 import java.util
 import java.util.stream.Collectors
-import java.util.{BitSet => JavaBitSet, UUID}
+import java.util.{BitSet => JavaBitSet, Collections, UUID}
 
 import org.infinispan.CacheStream
 import org.infinispan.commons.marshall.Marshaller
-import org.infinispan.commons.util.{CollectionFactory, InfinispanCollections}
+import org.infinispan.commons.util.CollectionFactory
 import org.infinispan.configuration.cache.CompatibilityModeConfiguration
 import org.infinispan.container.entries.CacheEntry
 import org.infinispan.filter.CacheFilters.filterAndConvert
@@ -46,7 +46,7 @@ class IterationState(val listener: IterationSegmentsListener, val iterator: java
 
 class IterableIterationResult(finishedSegments: util.Set[Integer], val statusCode: OperationStatus, val entries: List[CacheEntry[AnyRef, AnyRef]], compatInfo: CompatInfo, val metadata: Boolean) {
 
-   lazy val compatEnabled = compatInfo.enabled && compatInfo.hotRodTypeConverter.isDefined
+   lazy val compatEnabled = compatInfo.enabled
 
    def segmentsToBytes = {
       val bs = new util.BitSet
@@ -62,7 +62,7 @@ class CompatInfo(val enabled: Boolean, val hotRodTypeConverter: Option[HotRodTyp
 
 object CompatInfo {
    def apply(config: CompatibilityModeConfiguration) =
-      new CompatInfo(config.enabled(), Option(config.marshaller()).map(HotRodTypeConverter(_)))
+      new CompatInfo(config.enabled(), if (config.enabled()) Some(HotRodTypeConverter(config.marshaller())) else None)
 }
 
 class DefaultIterationManager(val cacheManager: EmbeddedCacheManager) extends IterationManager with Log {
@@ -123,7 +123,7 @@ class DefaultIterationManager(val cacheManager: EmbeddedCacheManager) extends It
          val batch = state.batch
          val entries = for (i <- 0 to batch - 1; if iterator.hasNext) yield iterator.next
          new IterableIterationResult(listener.finished, OperationStatus.Success, entries.toList, state.compatInfo, state.metadata)
-      }.getOrElse(new IterableIterationResult(InfinispanCollections.emptySet(), OperationStatus.InvalidIteration, List.empty, null, false))
+      }.getOrElse(new IterableIterationResult(Collections.emptySet(), OperationStatus.InvalidIteration, List.empty, null, false))
    }
 
    override def close(cacheName: String, iterationId: IterationId): Boolean = {

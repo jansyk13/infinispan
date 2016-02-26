@@ -21,8 +21,6 @@ import org.infinispan.commands.write.PutMapCommand;
 import org.infinispan.commands.write.RemoveCommand;
 import org.infinispan.commands.write.ReplaceCommand;
 import org.infinispan.commands.write.WriteCommand;
-import org.infinispan.commons.CacheException;
-import org.infinispan.commons.util.InfinispanCollections;
 import org.infinispan.context.Flag;
 import org.infinispan.context.InvocationContext;
 import org.infinispan.context.impl.LocalTxInvocationContext;
@@ -52,8 +50,9 @@ import org.infinispan.util.logging.LogFactory;
  * @author Manik Surtani
  * @author Galder Zamarreño
  * @author Mircea.Markus@jboss.com
- * @since 4.0
+ * @deprecated Since 8.2, no longer public API.
  */
+@Deprecated
 @MBean(objectName = "Invalidation", description = "Component responsible for invalidating entries on remote caches when entries are written to locally.")
 public class InvalidationInterceptor extends BaseRpcInterceptor implements JmxStatisticsExposer {
    private final AtomicLong invalidations = new AtomicLong(0);
@@ -232,7 +231,7 @@ public class InvalidationInterceptor extends BaseRpcInterceptor implements JmxSt
    private void invalidateAcrossCluster(boolean synchronous, Object[] keys, InvocationContext ctx) throws Throwable {
       // increment invalidations counter if statistics maintained
       incrementInvalidations();
-      final InvalidateCommand invalidateCommand = commandsFactory.buildInvalidateCommand(InfinispanCollections.<Flag>emptySet(), keys);
+      final InvalidateCommand invalidateCommand = commandsFactory.buildInvalidateCommand(Collections.<Flag>emptySet(), keys);
       if (log.isDebugEnabled())
          log.debug("Cache [" + rpcManager.getAddress() + "] replicating " + invalidateCommand);
       
